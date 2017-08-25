@@ -16,28 +16,20 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <string.h>
 
 #define LOG_TAG "PowerHal"
 #include <utils/Log.h>
 
-#include <cutils/properties.h>
+#include <hardware/hardware.h>
 #include <hardware/power.h>
 
-enum {
-    PROFILE_POWER_SAVE,
-    PROFILE_BALANCED,
-    PROFILE_HIGH_PERFORMANCE,
-};
+#define CPU_PATH_MAX       "/sys/kernel/msm_thermal/user_maxfreq"
+#define LOW_POWER_MAX_FREQ "960000"
+#define NORMAL_MAX_FREQ    "2457600"
 
-#define POWER_NR_OF_SUPPORTED_PROFILES 3
-
-#define POWER_PROFILE_PROPERTY  "sys.perf.profile"
-#define POWER_SAVE_PROP         "0"
-#define BALANCED_PROP           "1"
-#define HIGH_PERFORMANCE_PROP   "2"
-
-static int current_power_profile = PROFILE_BALANCED;
+static bool low_power_mode;
 
 static int sysfs_write(const char *path, char *s)
 {
@@ -72,31 +64,19 @@ static void power_set_interactive(struct power_module *module __unused,
 {
 }
 
-static void set_power_profile(int profile)
-{
-    if (profile == current_power_profile)
-        return;
-
-    switch (profile) {
-    case PROFILE_POWER_SAVE:
-        property_set(POWER_PROFILE_PROPERTY, POWER_SAVE_PROP);
-        break;
-    case PROFILE_BALANCED:
-        property_set(POWER_PROFILE_PROPERTY, BALANCED_PROP);
-        break;
-    case PROFILE_HIGH_PERFORMANCE:
-        property_set(POWER_PROFILE_PROPERTY, HIGH_PERFORMANCE_PROP);
-        break;
-    }
-
-    current_power_profile = profile;
-}
-
 static void power_hint(struct power_module *module __unused, power_hint_t hint,
                 void *data __unused)
 {
-    if (hint == POWER_HINT_SET_PROFILE)
-        set_power_profile(*(int32_t *)data);
+    if (hint != POWER_HINT_LOW_POWER)
+        return;
+
+    if (low_power_mode) {
+        low_power_mode = false;
+        sysfs_write(CPU_PATH_MAX, NORMAL_MAX_FREQ);
+    } else {
+        low_power_mode = true;
+        sysfs_write(CPU_PATH_MAX, LOW_POWER_MAX_FREQ);
+    }
 }
 
 static struct hw_module_methods_t power_module_methods = {
@@ -116,13 +96,6 @@ static void set_feature(struct power_module *module __unused,
 #endif
 }
 
-static int get_feature(struct power_module *module __unused, feature_t feature)
-{
-    if (feature == POWER_FEATURE_SUPPORTED_PROFILES)
-        return POWER_NR_OF_SUPPORTED_PROFILES;
-    return -1;
-}
-
 struct power_module HAL_MODULE_INFO_SYM = {
     .common = {
         .tag = HARDWARE_MODULE_TAG,
@@ -136,6 +109,5 @@ struct power_module HAL_MODULE_INFO_SYM = {
     .init = power_init,
     .powerHint = power_hint,
     .setInteractive = power_set_interactive,
-    .setFeature = set_feature,
-    .getFeature = get_feature
+    .setFeature = set_feature
 };
