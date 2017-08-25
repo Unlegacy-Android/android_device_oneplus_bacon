@@ -234,10 +234,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     init.qcom.bt.sh
 
-# Recovery
-PRODUCT_PACKAGES += \
-    librecovery_updater_bacon
-
 # Sensors
 PRODUCT_PACKAGES += \
     android.hardware.sensors@1.0-impl
@@ -268,6 +264,3 @@ PRODUCT_PACKAGES += \
 
 # Call the proprietary setup
 $(call inherit-product, vendor/oneplus/bacon/bacon-vendor.mk)
-
-# Inherit from oppo-common
-$(call inherit-product, device/oppo/common/common.mk)
