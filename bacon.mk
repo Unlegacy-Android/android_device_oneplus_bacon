@@ -70,6 +70,10 @@ PRODUCT_PACKAGES += \
 TARGET_SCREEN_HEIGHT := 1920
 TARGET_SCREEN_WIDTH := 1080
 
+# Boot Control
+PRODUCT_PACKAGES += \
+    android.hardware.boot@1.0-impl
+
 # Camera
 PRODUCT_PACKAGES += \
     camera.msm8974 \
@@ -86,6 +90,11 @@ PRODUCT_PACKAGES += \
 # Display
 PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xxhdpi
+
+
+# GNSS HAL
+PRODUCT_PACKAGES += \
+  	android.hardware.gnss@1.0-impl
 
 # Graphics
 PRODUCT_PACKAGES += \
@@ -233,6 +242,10 @@ PRODUCT_PACKAGES += \
 
 PRODUCT_PACKAGES += \
     init.qcom.bt.sh
+
+# RenderScript HAL
+PRODUCT_PACKAGES += \
+		android.hardware.renderscript@1.0-impl
 
 # Sensors
 PRODUCT_PACKAGES += \
