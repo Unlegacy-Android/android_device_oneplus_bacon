@@ -120,8 +120,7 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/gps/sap.conf:system/etc/sap.conf
 
 # HIDL
-PRODUCT_COPY_FILES += \
-    $(LOCAL_PATH)/manifest.xml:system/vendor/manifest.xml
+DEVICE_MANIFEST_FILE := device/oneplus/bacon/manifest.xml
 
 # IPC router config
 PRODUCT_COPY_FILES += \
