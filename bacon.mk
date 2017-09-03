@@ -109,6 +109,10 @@ PRODUCT_PACKAGES += \
     liboverlay \
     libboringssl-compat
 
+# Memtrack
+PRODUCT_PACKAGES += \
+		android.hardware.memtrack@1.0-impl
+
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm8974
