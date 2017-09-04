@@ -155,6 +155,7 @@ on boot
 
     # NFC: Use HAL compatible node
     symlink /dev/pn544 /dev/pn54x
+    chown nfc nfc /dev/pn54x
 
     # Wifi firmware reload path
     chown wifi wifi /sys/module/wlan/parameters/fwpath
