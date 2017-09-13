@@ -75,6 +75,10 @@ TARGET_SCREEN_WIDTH := 1080
 PRODUCT_PACKAGES += \
     android.hardware.boot@1.0-impl
 
+# Health
+PRODUCT_PACKAGES += \
+		android.hardware.health@1.0-impl
+
 # Camera
 PRODUCT_PACKAGES += \
     camera.device@1.0-impl \
