@@ -34,21 +34,25 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include <android-base/file.h>
+#include <android-base/logging.h>
 #include <android-base/strings.h>
 
 #include "vendor_init.h"
 #include "property_service.h"
-#include "log.h"
 #include "util.h"
 
 using android::base::Trim;
+using android::base::ReadFileToString;
+using android::init::property_set;
+using android::init::import_kernel_cmdline;
 
 static void init_alarm_boot_properties()
 {
     char const *boot_reason_file = "/proc/sys/kernel/boot_reason";
     std::string boot_reason;
 
-    if (read_file(boot_reason_file, &boot_reason) {
+    if (ReadFileToString(boot_reason_file, &boot_reason)) {
         /*
          * Setup ro.alarm_boot value to true when it is RTC triggered boot up
          * For existing PMIC chips, the following mapping applies
