@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "18b24136_d4eab858",
+        "filename": "camera/QCamera2/HAL/Android.mk",
+        "patchSetId": 1
+      },
+      "lineNbr": 49,
+      "author": {
+        "id": 1000000
+      },
+      "writtenOn": "2017-12-25T23:01:26Z",
+      "side": 1,
+      "message": "what the hell? someone was on drugs doing this...",
+      "revId": "38a30c1481f07bd10c071b373fe05ff09ebfd529",
+      "serverId": "d5e41ece-075f-43fb-b5a6-48951f3d7b1d",
+      "unresolved": false
+    }
+  ]
+}
