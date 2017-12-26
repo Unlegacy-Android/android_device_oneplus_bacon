@@ -28,6 +28,7 @@
 #define CPU_PATH_MAX       "/sys/kernel/msm_thermal/user_maxfreq"
 #define LOW_POWER_MAX_FREQ "960000"
 #define NORMAL_MAX_FREQ    "2457600"
+#define TAP_TO_WAKE_NODE   "/proc/touchpanel/double_tap_enable"
 
 static bool low_power_mode;
 
@@ -82,14 +83,12 @@ static void power_hint(struct power_module *module __unused, power_hint_t hint,
 static void set_feature(struct power_module *module __unused,
                 feature_t feature, int state)
 {
-#ifdef TAP_TO_WAKE_NODE
     char tmp_str[64];
 
     if (feature == POWER_FEATURE_DOUBLE_TAP_TO_WAKE) {
         snprintf(tmp_str, 64, "%d", state);
         sysfs_write(TAP_TO_WAKE_NODE, tmp_str);
     }
-#endif
 }
 
 static int power_open(const hw_module_t* module, const char* name,
