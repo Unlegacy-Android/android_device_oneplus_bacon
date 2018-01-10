@@ -397,9 +397,10 @@ service mpdecision /system/bin/mpdecision --avg_comp
    disabled
 
 service time_daemon /system/bin/time_daemon
+    capabilities SYS_TIME
     class late_start
-    user root
-    group root
+    user system
+    group net_raw
 
 on property:vold.decrypt=trigger_restart_framework
     start config_bt_addr
