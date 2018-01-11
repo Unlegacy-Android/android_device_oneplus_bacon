@@ -258,9 +258,6 @@ on post-fs-data
     chown root system /proc/touchpanel/keypad_enable
     chmod 0660 /proc/touchpanel/keypad_enable
 
-    #TEMP: Disable HW Keys until we have a switch in Settings
-    write /proc/touchpanel/keypad_enable 0
-
     chown system system /sys/devices/virtual/graphics/fb0/rgb
     chmod 0660 /sys/devices/virtual/graphics/fb0/rgb
 
