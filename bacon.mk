@@ -88,8 +88,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     camera.device@1.0-impl \
     android.hardware.camera.provider@2.4-impl \
-    camera.msm8974 \
-    Snap
+    camera.msm8974
 
 # Dalvik/HWUI
 $(call inherit-product-if-exists, frameworks/native/build/phone-xhdpi-2048-dalvik-heap.mk)
@@ -267,7 +266,7 @@ PRODUCT_PACKAGES += \
 
 # RenderScript HAL
 PRODUCT_PACKAGES += \
-		android.hardware.renderscript@1.0-impl
+    android.hardware.renderscript@1.0-impl
 
 # Sensors
 PRODUCT_PACKAGES += \
@@ -279,11 +278,11 @@ PRODUCT_PACKAGES += \
 
 # USB HAL
 PRODUCT_PACKAGES += \
-		android.hardware.usb@1.0-service
+    android.hardware.usb@1.0-service
 
 # DRM
 PRODUCT_PACKAGES += \
-		android.hardware.drm@1.0-impl
+    android.hardware.drm@1.0-impl
 
 # WiFi
 PRODUCT_COPY_FILES += \
