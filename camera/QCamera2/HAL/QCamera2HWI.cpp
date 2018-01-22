@@ -3200,31 +3200,10 @@ int QCamera2HardwareInterface::sendCommand(int32_t command, int32_t /*arg1*/, in
     int rc = NO_ERROR;
 
     switch (command) {
-    case CAMERA_CMD_LONGSHOT_ON:
-        // Longshot can only be enabled when image capture
-        // is not active.
-        if ( !m_stateMachine.isCaptureRunning() ) {
-            mLongshotEnabled = true;
-        } else {
-            rc = NO_INIT;
-        }
-        break;
-    case CAMERA_CMD_LONGSHOT_OFF:
-        if ( mLongshotEnabled && m_stateMachine.isCaptureRunning() ) {
-            cancelPicture();
-            processEvt(QCAMERA_SM_EVT_SNAPSHOT_DONE, NULL);
-        }
-        mLongshotEnabled = false;
-        break;
-    case CAMERA_CMD_HISTOGRAM_ON:
-    case CAMERA_CMD_HISTOGRAM_OFF:
-        rc = setHistogram(command == CAMERA_CMD_HISTOGRAM_ON? true : false);
-        break;
     case CAMERA_CMD_START_FACE_DETECTION:
     case CAMERA_CMD_STOP_FACE_DETECTION:
         rc = setFaceDetection(command == CAMERA_CMD_START_FACE_DETECTION? true : false);
         break;
-    case CAMERA_CMD_HISTOGRAM_SEND_DATA:
     default:
         rc = NO_ERROR;
         break;
@@ -3647,80 +3626,6 @@ int32_t QCamera2HardwareInterface::processZoomEvent(cam_crop_data_t &crop_info)
 }
 
 /*===========================================================================
- * FUNCTION   : processHDRData
- *
- * DESCRIPTION: process HDR scene events
- *
- * PARAMETERS :
- *   @hdr_scene : HDR scene event data
- *
- * RETURN     : int32_t type of status
- *              NO_ERROR  -- success
- *              none-zero failure code
- *==========================================================================*/
-int32_t QCamera2HardwareInterface::processHDRData(cam_asd_hdr_scene_data_t hdr_scene)
-{
-    int rc = NO_ERROR;
-
-    if (hdr_scene.is_hdr_scene &&
-      (hdr_scene.hdr_confidence > HDR_CONFIDENCE_THRESHOLD) &&
-      mParameters.isAutoHDREnabled()) {
-        m_HDRSceneEnabled = true;
-    } else {
-        m_HDRSceneEnabled = false;
-    }
-    mParameters.setHDRSceneEnable(m_HDRSceneEnabled);
-
-    if ( msgTypeEnabled(CAMERA_MSG_META_DATA) ) {
-
-        size_t data_len = sizeof(int);
-        size_t buffer_len = 1 *sizeof(int)       //meta type
-                          + 1 *sizeof(int)       //data len
-                          + 1 *sizeof(int);      //data
-        camera_memory_t *hdrBuffer = mGetMemory(-1,
-                                                 buffer_len,
-                                                 1,
-                                                 mCallbackCookie);
-        if ( NULL == hdrBuffer ) {
-            ALOGE("%s: Not enough memory for auto HDR data",
-                  __func__);
-            return NO_MEMORY;
-        }
-
-        int *pHDRData = (int *)hdrBuffer->data;
-        if (pHDRData == NULL) {
-            ALOGE("%s: memory data ptr is NULL", __func__);
-            return UNKNOWN_ERROR;
-        }
-
-        pHDRData[0] = CAMERA_META_DATA_HDR;
-        pHDRData[1] = data_len;
-        pHDRData[2] = m_HDRSceneEnabled;
-
-        qcamera_callback_argm_t cbArg;
-        memset(&cbArg, 0, sizeof(qcamera_callback_argm_t));
-        cbArg.cb_type = QCAMERA_DATA_CALLBACK;
-        cbArg.msg_type = CAMERA_MSG_META_DATA;
-        cbArg.data = hdrBuffer;
-        cbArg.user_data = hdrBuffer;
-        cbArg.cookie = this;
-        cbArg.release_cb = releaseCameraMemory;
-        rc = m_cbNotifier.notifyCallback(cbArg);
-        if (rc != NO_ERROR) {
-            ALOGE("%s: fail sending auto HDR notification", __func__);
-            hdrBuffer->release(hdrBuffer);
-        }
-    }
-
-    ALOGD("%s : hdr_scene_data: processHDRData: %d %f",
-          __func__,
-          hdr_scene.is_hdr_scene,
-          hdr_scene.hdr_confidence);
-
-  return rc;
-}
-
-/*===========================================================================
  * FUNCTION   : transAwbMetaToParams
  *
  * DESCRIPTION: translate awb params from metadata callback to QCameraParameters
@@ -3762,63 +3667,6 @@ int32_t QCamera2HardwareInterface::processPrepSnapshotDoneEvent(
         ALOGD("%s: already handled in mm-camera-intf, no ops here", __func__);
     }
     return ret;
-}
-
-/*===========================================================================
- * FUNCTION   : processASDUpdate
- *
- * DESCRIPTION: process ASD update event
- *
- * PARAMETERS :
- *   @scene: selected scene mode
- *
- * RETURN     : int32_t type of status
- *              NO_ERROR  -- success
- *              none-zero failure code
- *==========================================================================*/
-int32_t QCamera2HardwareInterface::processASDUpdate(cam_auto_scene_t scene)
-{
-    //set ASD parameter
-    mParameters.set(QCameraParameters::KEY_SELECTED_AUTO_SCENE, mParameters.getASDStateString(scene));
-
-    size_t data_len = sizeof(cam_auto_scene_t);
-    size_t buffer_len = 1 *sizeof(int)       //meta type
-                      + 1 *sizeof(int)       //data len
-                      + data_len;            //data
-    camera_memory_t *asdBuffer = mGetMemory(-1,
-                                             buffer_len,
-                                             1,
-                                             mCallbackCookie);
-    if ( NULL == asdBuffer ) {
-        ALOGE("%s: Not enough memory for histogram data", __func__);
-        return NO_MEMORY;
-    }
-
-    int *pASDData = (int *)asdBuffer->data;
-    if (pASDData == NULL) {
-        ALOGE("%s: memory data ptr is NULL", __func__);
-        return UNKNOWN_ERROR;
-    }
-
-    pASDData[0] = CAMERA_META_DATA_ASD;
-    pASDData[1] = data_len;
-    pASDData[2] = scene;
-
-    qcamera_callback_argm_t cbArg;
-    memset(&cbArg, 0, sizeof(qcamera_callback_argm_t));
-    cbArg.cb_type = QCAMERA_DATA_CALLBACK;
-    cbArg.msg_type = CAMERA_MSG_META_DATA;
-    cbArg.data = asdBuffer;
-    cbArg.user_data = asdBuffer;
-    cbArg.cookie = this;
-    cbArg.release_cb = releaseCameraMemory;
-    int32_t rc = m_cbNotifier.notifyCallback(cbArg);
-    if (rc != NO_ERROR) {
-        ALOGE("%s: fail sending notification", __func__);
-        asdBuffer->release(asdBuffer);
-    }
-    return NO_ERROR;
-
 }
 
 /*===========================================================================
@@ -5118,12 +4966,8 @@ int32_t QCamera2HardwareInterface::processFaceDetectionResult(cam_face_detection
         return NO_ERROR;
     }
 
-    qcamera_face_detect_type_t fd_type = fd_data->fd_type;
-    if ((NULL == mDataCb) ||
-        (fd_type == QCAMERA_FD_PREVIEW && !msgTypeEnabled(CAMERA_MSG_PREVIEW_METADATA)) ||
-        (fd_type == QCAMERA_FD_SNAPSHOT && !msgTypeEnabled(CAMERA_MSG_META_DATA))
-        ) {
-        ALOGD("%s: metadata msgtype not enabled, no ops here", __func__);
+    if ((NULL == mDataCb) || (msgTypeEnabledWithLock(CAMERA_MSG_PREVIEW_METADATA) == 0)) {
+        ALOGD("%s: prevew metadata msgtype not enabled, no ops here", __func__);
         return NO_ERROR;
     }
 
@@ -5136,28 +4980,8 @@ int32_t QCamera2HardwareInterface::processFaceDetectionResult(cam_face_detection
     }
 
     // process face detection result
-    // need separate face detection in preview or snapshot type
-    size_t faceResultSize = 0;
-    size_t data_len = 0;
-    if(fd_type == QCAMERA_FD_PREVIEW){
-        //fd for preview frames
-        faceResultSize = sizeof(camera_frame_metadata_t);
-        faceResultSize += sizeof(camera_face_t) * MAX_ROI;
-    }else if(fd_type == QCAMERA_FD_SNAPSHOT){
-        // fd for snapshot frames
-        //check if face is detected in this frame
-        if(fd_data->num_faces_detected > 0){
-            data_len = sizeof(camera_frame_metadata_t) +
-                         sizeof(camera_face_t) * fd_data->num_faces_detected;
-        }else{
-            //no face
-            data_len = 0;
-        }
-        faceResultSize = 1 *sizeof(int)    //meta data type
-                       + 1 *sizeof(int)    // meta data len
-                       + data_len;         //data
-    }
-
+    size_t faceResultSize = sizeof(camera_frame_metadata_t);
+    faceResultSize += sizeof(camera_face_t) * MAX_ROI;
     camera_memory_t *faceResultBuffer = mGetMemory(-1,
                                                    faceResultSize,
                                                    1,
@@ -5168,38 +4992,8 @@ int32_t QCamera2HardwareInterface::processFaceDetectionResult(cam_face_detection
         return NO_MEMORY;
     }
 
-    unsigned char *pFaceResult = ( unsigned char * ) faceResultBuffer->data;
-    memset(pFaceResult, 0, faceResultSize);
-    unsigned char *faceData = NULL;
-    if(fd_type == QCAMERA_FD_PREVIEW){
-        faceData = pFaceResult;
-    }else if(fd_type == QCAMERA_FD_SNAPSHOT){
-        //need fill meta type and meta data len first
-        int *data_header = (int* )pFaceResult;
-        data_header[0] = CAMERA_META_DATA_FD;
-        data_header[1] = data_len;
-
-        if(data_len <= 0){
-            //if face is not valid or do not have face, return
-            qcamera_callback_argm_t cbArg;
-            memset(&cbArg, 0, sizeof(qcamera_callback_argm_t));
-            cbArg.cb_type = QCAMERA_DATA_CALLBACK;
-            cbArg.msg_type = CAMERA_MSG_META_DATA;
-            cbArg.data = faceResultBuffer;
-            cbArg.user_data = faceResultBuffer;
-            cbArg.cookie = this;
-            cbArg.release_cb = releaseCameraMemory;
-            int32_t rc = m_cbNotifier.notifyCallback(cbArg);
-            if (rc != NO_ERROR) {
-                ALOGE("%s: fail sending notification", __func__);
-                faceResultBuffer->release(faceResultBuffer);
-            }
-            return rc;
-        }
-
-        faceData = pFaceResult + 2 *sizeof(int); //skip two int length
-    }
-
+    unsigned char *faceData = ( unsigned char * ) faceResultBuffer->data;
+    memset(faceData, 0, faceResultSize);
     camera_frame_metadata_t *roiData = (camera_frame_metadata_t * ) faceData;
     camera_face_t *faces = (camera_face_t *) ( faceData + sizeof(camera_frame_metadata_t) );
 
@@ -5247,21 +5041,21 @@ int32_t QCamera2HardwareInterface::processFaceDetectionResult(cam_face_detection
             faces[i].mouth[1] =
                 MAP_TO_DRIVER_COORDINATE(fd_data->faces[i].mouth_center.y, display_dim.height, 2000, -1000);
 
+#if 0
             faces[i].smile_degree = fd_data->faces[i].smile_degree;
             faces[i].smile_score = fd_data->faces[i].smile_confidence;
             faces[i].blink_detected = fd_data->faces[i].blink_detected;
             faces[i].face_recognised = fd_data->faces[i].face_recognised;
             faces[i].gaze_angle = fd_data->faces[i].gaze_angle;
-
             // upscale by 2 to recover from demaen downscaling
             faces[i].updown_dir = fd_data->faces[i].updown_dir * 2;
             faces[i].leftright_dir = fd_data->faces[i].leftright_dir * 2;
             faces[i].roll_dir = fd_data->faces[i].roll_dir * 2;
-
             faces[i].leye_blink = fd_data->faces[i].left_blink;
             faces[i].reye_blink = fd_data->faces[i].right_blink;
             faces[i].left_right_gaze = fd_data->faces[i].left_right_gaze;
             faces[i].top_bottom_gaze = fd_data->faces[i].top_bottom_gaze;
+#endif
 
         }
     }
@@ -5269,23 +5063,15 @@ int32_t QCamera2HardwareInterface::processFaceDetectionResult(cam_face_detection
     qcamera_callback_argm_t cbArg;
     memset(&cbArg, 0, sizeof(qcamera_callback_argm_t));
     cbArg.cb_type = QCAMERA_DATA_CALLBACK;
-    if(fd_type == QCAMERA_FD_PREVIEW){
-        cbArg.msg_type = CAMERA_MSG_PREVIEW_METADATA;
-    }else if(fd_type == QCAMERA_FD_SNAPSHOT){
-        cbArg.msg_type = CAMERA_MSG_META_DATA;
-    }
+    cbArg.msg_type = CAMERA_MSG_PREVIEW_METADATA;
     cbArg.data = faceResultBuffer;
     cbArg.metadata = roiData;
     cbArg.user_data = faceResultBuffer;
     cbArg.cookie = this;
     cbArg.release_cb = releaseCameraMemory;
-    int32_t rc = m_cbNotifier.notifyCallback(cbArg);
-    if (rc != NO_ERROR) {
-        ALOGE("%s: fail sending notification", __func__);
-        faceResultBuffer->release(faceResultBuffer);
-    }
+    m_cbNotifier.notifyCallback(cbArg);
 
-    return rc;
+    return NO_ERROR;
 }
 
 /*===========================================================================
@@ -5331,66 +5117,6 @@ void QCamera2HardwareInterface::returnStreamBuffer(void *data,
     if ( ( NULL != stream )) {
         stream->bufDone(idx);
     }
-}
-
-/*===========================================================================
- * FUNCTION   : processHistogramStats
- *
- * DESCRIPTION: process histogram stats
- *
- * PARAMETERS :
- *   @hist_data : ptr to histogram stats struct
- *
- * RETURN     : int32_t type of status
- *              NO_ERROR  -- success
- *              none-zero failure code
- *==========================================================================*/
-int32_t QCamera2HardwareInterface::processHistogramStats(cam_hist_stats_t &stats_data)
-{
-    if (!mParameters.isHistogramEnabled()) {
-        ALOGV("%s: Histogram not enabled, no ops here", __func__);
-        return NO_ERROR;
-    }
-
-    camera_memory_t *histBuffer = mGetMemory(-1,
-                                             sizeof(cam_histogram_data_t),
-                                             1,
-                                             mCallbackCookie);
-    if ( NULL == histBuffer ) {
-        ALOGE("%s: Not enough memory for histogram data",
-              __func__);
-        return NO_MEMORY;
-    }
-
-    cam_histogram_data_t *pHistData = (cam_histogram_data_t *)histBuffer->data;
-    if (pHistData == NULL) {
-        ALOGE("%s: memory data ptr is NULL", __func__);
-        return UNKNOWN_ERROR;
-    }
-
-    switch (stats_data.type) {
-    case CAM_HISTOGRAM_TYPE_BAYER:
-        *pHistData = stats_data.bayer_stats.gb_stats;
-        break;
-    case CAM_HISTOGRAM_TYPE_YUV:
-        *pHistData = stats_data.yuv_stats;
-        break;
-    }
-
-    qcamera_callback_argm_t cbArg;
-    memset(&cbArg, 0, sizeof(qcamera_callback_argm_t));
-    cbArg.cb_type = QCAMERA_DATA_CALLBACK;
-    cbArg.msg_type = CAMERA_MSG_STATS_DATA;
-    cbArg.data = histBuffer;
-    cbArg.user_data = histBuffer;
-    cbArg.cookie = this;
-    cbArg.release_cb = releaseCameraMemory;
-    int32_t rc = m_cbNotifier.notifyCallback(cbArg);
-    if (rc != NO_ERROR) {
-        ALOGE("%s: fail sending notification", __func__);
-        histBuffer->release(histBuffer);
-    }
-    return NO_ERROR;
 }
 
 /*===========================================================================
