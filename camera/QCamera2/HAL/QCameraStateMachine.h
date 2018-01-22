@@ -139,9 +139,7 @@ typedef enum {
     QCAMERA_INTERNAL_EVT_FOCUS_UPDATE,       // focus updating result
     QCAMERA_INTERNAL_EVT_PREP_SNAPSHOT_DONE, // prepare snapshot done
     QCAMERA_INTERNAL_EVT_FACE_DETECT_RESULT, // face detection result
-    QCAMERA_INTERNAL_EVT_HISTOGRAM_STATS,    // histogram
     QCAMERA_INTERNAL_EVT_CROP_INFO,          // crop info
-    QCAMERA_INTERNAL_EVT_ASD_UPDATE,         // asd update result
     QCAMERA_INTERNAL_EVT_AWB_UPDATE,         // awb update result
     QCAMERA_INTERNAL_EVT_MAX
 } qcamera_internal_evt_type_t;

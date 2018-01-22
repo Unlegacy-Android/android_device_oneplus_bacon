@@ -1215,14 +1215,8 @@ int32_t QCameraStateMachine::procEvtPreviewingState(qcamera_sm_evt_enum_t evt,
             case QCAMERA_INTERNAL_EVT_FACE_DETECT_RESULT:
                 rc = m_parent->processFaceDetectionResult(&internal_evt->faces_data);
                 break;
-            case QCAMERA_INTERNAL_EVT_HISTOGRAM_STATS:
-                rc = m_parent->processHistogramStats(internal_evt->stats_data);
-                break;
             case QCAMERA_INTERNAL_EVT_CROP_INFO:
                 rc = m_parent->processZoomEvent(internal_evt->crop_data);
-                break;
-            case QCAMERA_INTERNAL_EVT_ASD_UPDATE:
-                rc = m_parent->processASDUpdate(internal_evt->asd_data);
                 break;
             case QCAMERA_INTERNAL_EVT_AWB_UPDATE:
                 rc = m_parent->processAWBUpdate(internal_evt->awb_data);
@@ -1355,14 +1349,8 @@ int32_t QCameraStateMachine::procEvtPrepareSnapshotState(qcamera_sm_evt_enum_t e
             case QCAMERA_INTERNAL_EVT_FACE_DETECT_RESULT:
                 rc = m_parent->processFaceDetectionResult(&internal_evt->faces_data);
                 break;
-            case QCAMERA_INTERNAL_EVT_HISTOGRAM_STATS:
-                rc = m_parent->processHistogramStats(internal_evt->stats_data);
-                break;
             case QCAMERA_INTERNAL_EVT_CROP_INFO:
                 rc = m_parent->processZoomEvent(internal_evt->crop_data);
-                break;
-            case QCAMERA_INTERNAL_EVT_ASD_UPDATE:
-                rc = m_parent->processASDUpdate(internal_evt->asd_data);
                 break;
             case QCAMERA_INTERNAL_EVT_AWB_UPDATE:
                 rc = m_parent->processAWBUpdate(internal_evt->awb_data);
@@ -1589,23 +1577,6 @@ int32_t QCameraStateMachine::procEvtPicTakingState(qcamera_sm_evt_enum_t evt,
             m_parent->signalAPIResult(&result);
         }
         break;
-    case QCAMERA_SM_EVT_SEND_COMMAND:
-        {
-            qcamera_sm_evt_command_payload_t *cmd_payload =
-                (qcamera_sm_evt_command_payload_t *)payload;
-            rc = m_parent->sendCommand(cmd_payload->cmd,
-                                       cmd_payload->arg1,
-                                       cmd_payload->arg2);
-            if ( CAMERA_CMD_LONGSHOT_OFF == cmd_payload->cmd ) {
-                // move state to previewing state
-                m_state = QCAMERA_SM_STATE_PREVIEWING;
-            }
-            result.status = rc;
-            result.request_api = evt;
-            result.result_type = QCAMERA_API_RESULT_TYPE_DEF;
-            m_parent->signalAPIResult(&result);
-        }
-        break;
     case QCAMERA_SM_EVT_CANCEL_PICTURE:
         {
             rc = m_parent->cancelPicture();
@@ -1678,9 +1649,6 @@ int32_t QCameraStateMachine::procEvtPicTakingState(qcamera_sm_evt_enum_t evt,
                 break;
             case QCAMERA_INTERNAL_EVT_CROP_INFO:
                 rc = m_parent->processZoomEvent(internal_evt->crop_data);
-                break;
-            case QCAMERA_INTERNAL_EVT_ASD_UPDATE:
-                rc = m_parent->processASDUpdate(internal_evt->asd_data);
                 break;
             case QCAMERA_INTERNAL_EVT_AWB_UPDATE:
                 rc = m_parent->processAWBUpdate(internal_evt->awb_data);
@@ -2067,14 +2035,8 @@ int32_t QCameraStateMachine::procEvtRecordingState(qcamera_sm_evt_enum_t evt,
             case QCAMERA_INTERNAL_EVT_FACE_DETECT_RESULT:
                 rc = m_parent->processFaceDetectionResult(&internal_evt->faces_data);
                 break;
-            case QCAMERA_INTERNAL_EVT_HISTOGRAM_STATS:
-                rc = m_parent->processHistogramStats(internal_evt->stats_data);
-                break;
             case QCAMERA_INTERNAL_EVT_CROP_INFO:
                 rc = m_parent->processZoomEvent(internal_evt->crop_data);
-                break;
-            case QCAMERA_INTERNAL_EVT_ASD_UPDATE:
-                rc = m_parent->processASDUpdate(internal_evt->asd_data);
                 break;
             case QCAMERA_INTERNAL_EVT_AWB_UPDATE:
                 rc = m_parent->processAWBUpdate(internal_evt->awb_data);
@@ -2404,14 +2366,8 @@ int32_t QCameraStateMachine::procEvtVideoPicTakingState(qcamera_sm_evt_enum_t ev
             case QCAMERA_INTERNAL_EVT_FACE_DETECT_RESULT:
                 rc = m_parent->processFaceDetectionResult(&internal_evt->faces_data);
                 break;
-            case QCAMERA_INTERNAL_EVT_HISTOGRAM_STATS:
-                rc = m_parent->processHistogramStats(internal_evt->stats_data);
-                break;
             case QCAMERA_INTERNAL_EVT_CROP_INFO:
                 rc = m_parent->processZoomEvent(internal_evt->crop_data);
-                break;
-            case QCAMERA_INTERNAL_EVT_ASD_UPDATE:
-                rc = m_parent->processASDUpdate(internal_evt->asd_data);
                 break;
             case QCAMERA_INTERNAL_EVT_AWB_UPDATE:
                 rc = m_parent->processAWBUpdate(internal_evt->awb_data);
@@ -2644,23 +2600,6 @@ int32_t QCameraStateMachine::procEvtPreviewPicTakingState(qcamera_sm_evt_enum_t 
             m_parent->signalAPIResult(&result);
         }
         break;
-    case QCAMERA_SM_EVT_SEND_COMMAND:
-        {
-            qcamera_sm_evt_command_payload_t *cmd_payload =
-                (qcamera_sm_evt_command_payload_t *)payload;
-            rc = m_parent->sendCommand(cmd_payload->cmd,
-                                       cmd_payload->arg1,
-                                       cmd_payload->arg2);
-            if ( CAMERA_CMD_LONGSHOT_OFF == cmd_payload->cmd ) {
-                // move state to previewing state
-                m_state = QCAMERA_SM_STATE_PREVIEWING;
-            }
-            result.status = rc;
-            result.request_api = evt;
-            result.result_type = QCAMERA_API_RESULT_TYPE_DEF;
-            m_parent->signalAPIResult(&result);
-        }
-        break;
     case QCAMERA_SM_EVT_RELEASE_RECORIDNG_FRAME:
         {
             rc = m_parent->releaseRecordingFrame((const void *)payload);
@@ -2786,14 +2725,8 @@ int32_t QCameraStateMachine::procEvtPreviewPicTakingState(qcamera_sm_evt_enum_t 
             case QCAMERA_INTERNAL_EVT_FACE_DETECT_RESULT:
                 rc = m_parent->processFaceDetectionResult(&internal_evt->faces_data);
                 break;
-            case QCAMERA_INTERNAL_EVT_HISTOGRAM_STATS:
-                rc = m_parent->processHistogramStats(internal_evt->stats_data);
-                break;
             case QCAMERA_INTERNAL_EVT_CROP_INFO:
                 rc = m_parent->processZoomEvent(internal_evt->crop_data);
-                break;
-            case QCAMERA_INTERNAL_EVT_ASD_UPDATE:
-                rc = m_parent->processASDUpdate(internal_evt->asd_data);
                 break;
             case QCAMERA_INTERNAL_EVT_AWB_UPDATE:
                 rc = m_parent->processAWBUpdate(internal_evt->awb_data);
