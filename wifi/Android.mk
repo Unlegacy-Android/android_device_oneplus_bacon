@@ -43,3 +43,6 @@ LOCAL_MODULE_CLASS := ETC
 LOCAL_MODULE_PATH  := $(TARGET_OUT_ETC)/hostapd
 LOCAL_SRC_FILES    := hostapd.deny
 include $(BUILD_PREBUILT)
+
+# Build wcnss from device tree
+include $(LOCAL_PATH)/wcnss-service/Android.mk
