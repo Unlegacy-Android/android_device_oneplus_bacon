@@ -1157,18 +1157,6 @@ void QCamera2HardwareInterface::metadata_stream_cb_routine(mm_camera_super_buf_t
         }
     }
 
-    ALOGD("%s: hdr_scene_data: %d %d %f\n",
-          __func__,
-          pMetaData->is_hdr_scene_data_valid,
-          pMetaData->hdr_scene_data.is_hdr_scene,
-          pMetaData->hdr_scene_data.hdr_confidence);
-    //Handle this HDR meta data only if capture is not in process
-    if (pMetaData->is_hdr_scene_data_valid && !pme->m_stateMachine.isCaptureRunning()) {
-        int32_t rc = pme->processHDRData(pMetaData->hdr_scene_data);
-        if (rc != NO_ERROR) {
-            ALOGE("%s: processHDRData failed", __func__);
-        }
-    }
      /* Update 3a info */
     if(pMetaData->is_ae_params_valid) {
         pme->mExifParams.ae_params = pMetaData->ae_params;
