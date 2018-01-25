@@ -49,12 +49,14 @@ cc_library_shared {
         "liblog",
         "libutils",
         "libcutils",
+        "android.hidl.base@1.0",
     ],
     export_shared_lib_headers: [
         "libhidlbase",
         "libhidltransport",
         "libhwbinder",
         "libutils",
+        "android.hidl.base@1.0",
     ],
 }
 
@@ -72,11 +74,13 @@ cc_library_shared {
         "liblog",
         "libutils",
         "libcutils",
+        "android.hidl.base@1.0",
     ],
     export_shared_lib_headers: [
         "libhidlbase",
         "libhidltransport",
         "libhwbinder",
         "libutils",
+        "android.hidl.base@1.0",
     ],
 }
