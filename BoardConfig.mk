@@ -129,10 +129,6 @@ TARGET_USES_ION := true
 NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 TARGET_USES_HWC2 := true
 
-# Init
-TARGET_INIT_VENDOR_LIB := libinit_bacon
-TARGET_RECOVERY_DEVICE_MODULES := libinit_bacon
-
 # jemalloc
 MALLOC_SVELTE := true
 
